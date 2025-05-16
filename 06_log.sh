@@ -2,6 +2,8 @@
 
 ID=$(id -u)
 
+TIMESTAMP=$(date "+%D(%T)")
+LOGFILE="/tmp/$0-$TIMESTAMP.log"
 
 
 # Function to validate command execution
@@ -23,11 +25,11 @@ else
 fi
 
 # Install MySQL
-yum install mysql -y
+yum install mysql -y &>> $LOGFILE
 
 VALIDATE $? "Installing MySQL"
 
 
-yum install git 
+yum install git  &>> $LOGFILE
 
 VALIDATE $? "Installing Git"
