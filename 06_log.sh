@@ -22,7 +22,7 @@ VALIDATE() {
 
 # Check for root access
 if [ $ID -ne 0 ]; then 
-    echo -e "$R ❌ ERROR: Please run this script with root access $N"
+    echo -e "$R ❌ ERROR: $N Please run this script with root access"
     exit 1
 else 
     echo "✅ You are a Root User"
