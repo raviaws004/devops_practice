@@ -3,31 +3,35 @@
 ID=$(id -u)
 
 
+R="\e[31m"
+G="\e[32m"
+N="\e[0m"
 
 # Function to validate command execution
 VALIDATE() {
     if [ $1 -ne 0 ]; then
-        echo -e "\e[31m❌ FAILED: $2\e[0m"  # Red text
+        echo -e "❌ ERROR: $2 ... $R FAILED $N"
         exit 1
     else
-        echo -e "\e[32m✅ SUCCESS: $2\e[0m"  # Green text
+        echo -e "✅ SUCCESS: $2 ... $G SUCCESS $N"
     fi
 }
 
+
 # Check for root access
 if [ $ID -ne 0 ]; then 
-    echo "❌ ERROR: Please run this script with root access"
+    echo -e "$R ❌ ERROR: Please run this script with root access $N"
     exit 1
 else 
     echo "✅ You are a Root User"
 fi
 
 # Install MySQL
-yum install mysql -y
+yum install mysql -y &>> $LOGFILE
 
 VALIDATE $? "Installing MySQL"
 
 
-yum install git 
+yum install git  &>> $LOGFILE
 
 VALIDATE $? "Installing Git"
