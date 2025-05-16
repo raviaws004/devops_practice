@@ -7,10 +7,10 @@ ID=$(id -u)
 # Function to validate command execution
 VALIDATE() {
     if [ $1 -ne 0 ]; then
-        echo "❌ ERROR: $2"
+        echo -e "\e[31m❌ FAILED: $2\e[0m"  # Red text
         exit 1
     else
-        echo "✅ SUCCESS: $2"
+        echo -e "\e[32m✅ SUCCESS: $2\e[0m"  # Green text
     fi
 }
 
