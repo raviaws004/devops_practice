@@ -22,4 +22,10 @@ fi
 
 # Install MySQL
 yum install mysql -y
+
 VALIDATE $? "Installing MySQL"
+
+
+yum install git 
+
+VALIDATE $? "Installing Git"
