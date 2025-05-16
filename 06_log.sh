@@ -2,33 +2,35 @@
 
 ID=$(id -u)
 
-TIMESTAMP=$(date "+%F-%T")  # Safe timestamp format
+TIMESTAMP=$(date "+%F-%T")  # %F = YYYY-MM-DD, %T = HH:MM:SS
 LOGFILE="/tmp/$(basename $0)-$TIMESTAMP.log"
+
+
 
 # Function to validate command execution
 VALIDATE() {
     if [ $1 -ne 0 ]; then
-        echo "❌ ERROR: $2" | tee -a $LOGFILE
+        echo "❌ ERROR: $2"
         exit 1
     else
-        echo "✅ SUCCESS: $2" | tee -a $LOGFILE
+        echo "✅ SUCCESS: $2"
     fi
 }
 
 # Check for root access
 if [ $ID -ne 0 ]; then 
-    echo "❌ ERROR: Please run this script with root access" | tee -a $LOGFILE
+    echo "❌ ERROR: Please run this script with root access"
     exit 1
 else 
-    echo "✅ You are a Root User" | tee -a $LOGFILE
+    echo "✅ You are a Root User"
 fi
 
 # Install MySQL
-echo "Installing MySQL..." | tee -a $LOGFILE
 yum install mysql -y &>> $LOGFILE
+
 VALIDATE $? "Installing MySQL"
 
-# Install Git
-echo "Installing Git..." | tee -a $LOGFILE
-yum install git -y &>> $LOGFILE
+
+yum install git  &>> $LOGFILE
+
 VALIDATE $? "Installing Git"
