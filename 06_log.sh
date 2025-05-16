@@ -12,16 +12,17 @@ N="\e[0m"
 # Function to validate command execution
 VALIDATE() {
     if [ $1 -ne 0 ]; then
-        echo "❌ ERROR: $2 ... $R FAILED $N"
+        echo -e "❌ ERROR: $2 ... $R FAILED $N"
         exit 1
     else
-        echo "✅ SUCCESS: $2 ... $G SUCESS $N"
+        echo -e "✅ SUCCESS: $2 ... $G SUCCESS $N"
     fi
 }
 
+
 # Check for root access
 if [ $ID -ne 0 ]; then 
-    echo "$R ❌ ERROR: Please run this script with root access $N"
+    echo -e "$R ❌ ERROR: Please run this script with root access $N"
     exit 1
 else 
     echo "✅ You are a Root User"
