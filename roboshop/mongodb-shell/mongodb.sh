@@ -31,5 +31,35 @@ VALIDATE() {
     fi
 
 cp mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
-
 VALIDATE $? "Copied MOngoDB"
+
+dnf install mongodb-org -y &>> $LOGFILE
+VALIDATE $? "Installing ... MongoDB"
+
+systemctl enable mongod
+VALIDATE $? "Enabling ... MongoDB"
+
+systemctl start mongod
+VALIDATE $? "Starting ... MongoDB"
+
+# (SED - Sreamline Editor) which changes the bind port address from 127.0.0.1 to 0.0.0.0 in /etc/mongod.conf
+# SED is a temporary editor
+# sed -e : temporary change     syntax:  sed -e <word_to_search>/<word_to_chnages> <filename>
+#                               example: sed -e 's/sbin/SBIN/' - changes made in 1st possible lines  
+#                                        sed -e 's/sbin/SBIN/g' - changes made in all possible lines
+#  --> delete 1st line in the log --     sed -e '1d' <filename>
+#  --> delete 2nd line in the log --     sed -e '2d' <filename>
+#  --> delete string line in the log --     sed -e '/<string>/d' <filename>
+
+
+# sed -i : permenenet change    syntax: sed -i <word_to_search>/<word_to_chnages> <filename>
+
+# Update bind IP in mongod.conf
+sed -i '127.0.0.1/0.0.0.0 /g' /etc/mongod.conf &>> $LOGFILE  
+VALIDATE $? "Updating bind IP in mongod.conf"
+
+
+systemctl restart mongod
+VALIDATE $? "Restarting ... MongoDB"
+
+
