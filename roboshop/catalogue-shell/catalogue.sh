@@ -11,6 +11,8 @@ G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
+MONGODB_HOST=172.31.84.7
+
 echo "script start executing at $TIMESTAMP" &>> $LOGFILE 
 
 VALIDATE() {
@@ -62,6 +64,28 @@ VALIDATE $? "Changing directory ... app " &>> $LOGFILE
 npm install 
 VALIDATE $? "Installing ... npm package ... dependencies " &>> $LOGFILE
 
-cp catalogue.service /etc/systemd/system/catalogue.service
+#provide absolute path which we pull in instance because catalogue.service exist there
+cp /home/ec2-user/devops_practice/roboshop/catalogue-shell/catalogue.service /etc/systemd/system/catalogue.service
+VALIDATE $? "Copying ... catalogue.service" &>> $LOGFILE
+
+systemctl daemon-reload
+VALIDATE $? "catalogue daemon reload " &>> $LOGFILE
+
+
+systemctl enable catalogue
+VALIDATE $? "Enabling ... catalogue " &>> $LOGFILE
+
+
+systemctl start catalogue
+VALIDATE $? "Starting ... catalogue" &>> $LOGFILE
+
+cp /home/ec2-user/devops_practice/roboshop/mongodb-shell/mongo.repo /etc/yum.repos.d/mongo.repo
+VALIDATE $? "Copying ... mongo.repo to Catalogue" &>> $LOGFILE
+
+dnf install -y mongodb-mongosh
+VALIDATE $? "Installing ... mongodb client " &>> $LOGFILE
+
+mongosh --host $MONGODB_HOST </app/schema/catalogue.js
+VALIDATE $? "Loading ... Catalogue data into Mongodb"
 
 
