@@ -33,59 +33,59 @@ VALIDATE() {
     fi
 
 
-dnf module disable nodejs -y
-VALIDATE $? "Diabling ... nodejs" &>> $LOGFILE
+dnf module disable nodejs -y &>> $LOGFILE
+VALIDATE $? "Diabling ... nodejs" 
 
-dnf module enable nodejs:20 -y
-VALIDATE $? "Enabling ... nodejs:20" &>> $LOGFILE
+dnf module enable nodejs:20 -y &>> $LOGFILE
+VALIDATE $? "Enabling ... nodejs:20"
 
-dnf install nodejs -y
-VALIDATE $? "Installing ... nodejs" &>> $LOGFILE
+dnf install nodejs -y &>> $LOGFILE
+VALIDATE $? "Installing ... nodejs" 
 
-useradd roboshop
-VALIDATE $? "Adding User ... roboshop " &>> $LOGFILE
+useradd roboshop &>> $LOGFILE
+VALIDATE $? "Adding User ... roboshop " 
 
-mkdir /app
-VALIDATE $? "Creating ... Application directory " &>> $LOGFILE
+mkdir /app &>> $LOGFILE
+VALIDATE $? "Creating ... Application directory " 
 
 
-curl -o /tmp/catalogue.zip https://roboshop-builds.s3.amazonaws.com/catalogue.zip
-VALIDATE $? "Downloading ... catalogue.zip file from S3 Bucket" &>> $LOGFILE
+curl -o /tmp/catalogue.zip https://roboshop-builds.s3.amazonaws.com/catalogue.zip &>> $LOGFILE
+VALIDATE $? "Downloading ... catalogue.zip file from S3 Bucket" 
 
-cd /app 
-VALIDATE $? "Changing directory ... app " &>> $LOGFILE
+cd /app &>> $LOGFILE
+VALIDATE $? "Changing directory ... app " 
 
-unzip /tmp/catalogue.zip
-VALIDATE $? "Unzipping catalogue.zip in /tmp directory " &>> $LOGFILE
+unzip /tmp/catalogue.zip &>> $LOGFILE
+VALIDATE $? "Unzipping catalogue.zip in /tmp directory " 
 
-cd /app 
-VALIDATE $? "Changing directory ... app " &>> $LOGFILE
+cd /app &>> $LOGFILE
+VALIDATE $? "Changing directory ... app " 
 
-npm install 
-VALIDATE $? "Installing ... npm package ... dependencies " &>> $LOGFILE
+npm install &>> $LOGFILE
+VALIDATE $? "Installing ... npm package ... dependencies " 
 
 #provide absolute path which we pull in instance because catalogue.service exist there
-cp /home/ec2-user/devops_practice/roboshop/catalogue-shell/catalogue.service /etc/systemd/system/catalogue.service
-VALIDATE $? "Copying ... catalogue.service" &>> $LOGFILE
+cp /home/ec2-user/devops_practice/roboshop/catalogue-shell/catalogue.service /etc/systemd/system/catalogue.service &>> $LOGFILE
+VALIDATE $? "Copying ... catalogue.service" 
 
-systemctl daemon-reload
-VALIDATE $? "catalogue daemon reload " &>> $LOGFILE
-
-
-systemctl enable catalogue
-VALIDATE $? "Enabling ... catalogue " &>> $LOGFILE
+systemctl daemon-reload &>> $LOGFILE
+VALIDATE $? "catalogue daemon reload " 
 
 
-systemctl start catalogue
-VALIDATE $? "Starting ... catalogue" &>> $LOGFILE
+systemctl enable catalogue &>> $LOGFILE
+VALIDATE $? "Enabling ... catalogue "
 
-cp /home/ec2-user/devops_practice/roboshop/mongodb-shell/mongo.repo /etc/yum.repos.d/mongo.repo
-VALIDATE $? "Copying ... mongo.repo to Catalogue" &>> $LOGFILE
 
-dnf install -y mongodb-mongosh
-VALIDATE $? "Installing ... mongodb client " &>> $LOGFILE
+systemctl start catalogue &>> $LOGFILE
+VALIDATE $? "Starting ... catalogue" 
 
-mongosh --host $MONGODB_HOST </app/schema/catalogue.js
-VALIDATE $? "Loading ... Catalogue data into Mongodb"
+cp /home/ec2-user/devops_practice/roboshop/mongodb-shell/mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
+VALIDATE $? "Copying ... mongo.repo to Catalogue" 
+
+dnf install -y mongodb-mongosh &>> $LOGFILE
+VALIDATE $? "Installing ... mongodb client " 
+
+mongosh --host $MONGODB_HOST </app/schema/catalogue.js &>> $LOGFILE
+VALIDATE $? "Loading ... Catalogue data into Mongodb" 
 
 
