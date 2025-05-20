@@ -30,6 +30,6 @@ VALIDATE() {
         echo -e "✅ SUCCESS: $2 ... $G You are a root user $N"
     fi
 
-cp mongo.repo /etc/yum.repos.d/mongo.repo &>> LOGFILE
+cp mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
 
 VALIDATE $? "Copied MOngoDB"
