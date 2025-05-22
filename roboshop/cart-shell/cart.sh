@@ -72,7 +72,7 @@ npm install &>> $LOGFILE
 VALIDATE $? "Installing ... npm package ... dependencies " 
 
 #provide absolute path which we pull in instance because cart.service exist there
-cp /home/ec2-cart/devops_practice/roboshop/cart-shell/cart.service /etc/systemd/system/cart.service &>> $LOGFILE
+cp /home/ec2-user/devops_practice/roboshop/cart-shell/cart.service /etc/systemd/system/cart.service &>> $LOGFILE
 VALIDATE $? "Copying ... cart.service" 
 
 systemctl daemon-reload &>> $LOGFILE
