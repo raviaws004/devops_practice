@@ -38,11 +38,11 @@ VALIDATE $? "Installing ... redis"
 
 
 # Update bind IP in redis.conf
-#sed -i '127.0.0.1/0.0.0.0 /g' /etc/redis.conf &>> $LOGFILE   --> invalid syntax 
-grep bindIp /etc/redis.conf &>> $LOGFILE
-sed -i 's/127\.0\.0\.1/0.0.0.0/' /etc/redis.conf &>> $LOGFILE
-VALIDATE $? "Updating bind IP in redis.conf"
-grep bindIp /etc/redis.conf &>> $LOGFILE
+#sed -i '127.0.0.1/0.0.0.0 /g' /etc/redis/redis.conf &>> $LOGFILE   --> invalid syntax 
+grep bindIp /etc/redis/redis.conf &>> $LOGFILE
+sed -i 's/127\.0\.0\.1/0.0.0.0/' /etc/redis/redis.conf &>> $LOGFILE
+VALIDATE $? "Updating bind IP in redis/redis.conf"
+grep bindIp /etc/redis/redis.conf &>> $LOGFILE
 
 systemctl enable redis &>> $LOGFILE
 VALIDATE $? "Enabling ... redis "
