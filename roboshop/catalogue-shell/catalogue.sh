@@ -42,10 +42,17 @@ VALIDATE $? "Enabling ... nodejs:20"
 dnf install nodejs -y &>> $LOGFILE
 VALIDATE $? "Installing ... nodejs" 
 
-useradd roboshop &>> $LOGFILE
-VALIDATE $? "Adding User ... roboshop " 
 
-mkdir /app &>> $LOGFILE
+id roboshop
+if [ $? -ne -0 ]
+then 
+
+    useradd roboshop &>> $LOGFILE
+    VALIDATE $? "Adding User ... roboshop " 
+else echo -e "roboshop user already exist ... $Y SKIPPING $N"
+fi
+
+mkdir -p /app &>> $LOGFILE
 VALIDATE $? "Creating ... Application directory " 
 
 
@@ -55,7 +62,8 @@ VALIDATE $? "Downloading ... catalogue.zip file from S3 Bucket"
 cd /app &>> $LOGFILE
 VALIDATE $? "Changing directory ... app " 
 
-unzip /tmp/catalogue.zip &>> $LOGFILE
+#unzip /tmp/catalogue.zip &>> $LOGFILE
+unzip -o /tmp/catalogue.zip &>> $LOGFILE
 VALIDATE $? "Unzipping catalogue.zip in /tmp directory " 
 
 cd /app &>> $LOGFILE
