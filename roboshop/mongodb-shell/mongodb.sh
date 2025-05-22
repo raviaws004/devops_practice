@@ -56,7 +56,11 @@ VALIDATE $? "Starting ... MongoDB"
 
 # Update bind IP in mongod.conf
 #sed -i '127.0.0.1/0.0.0.0 /g' /etc/mongod.conf &>> $LOGFILE   --> invalid syntax 
+grep bindIp /etc/mongod.conf &>> $LOGFILE
 sed -i 's/127\.0\.0\.1/0.0.0.0/' /etc/mongod.conf &>> $LOGFILE
+VALIDATE $? "Updating bind IP in mongod.conf"
+grep bindIp /etc/mongod.conf &>> $LOGFILE
+
 
 VALIDATE $? "Updating bind IP in mongod.conf"
 
