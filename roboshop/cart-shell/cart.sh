@@ -46,7 +46,7 @@ id roboshop
 if [ $? -ne -0 ]
 then 
 
-    cartadd roboshop &>> $LOGFILE
+    userdd roboshop &>> $LOGFILE
     VALIDATE $? "Adding cart ... roboshop " 
 else echo -e "roboshop cart already exist ... $Y SKIPPING $N"
 fi
