@@ -34,32 +34,25 @@ else
   echo -e "✅ SUCCESS: $G Running as root user. $N"
 fi
 
-echo -e "${Y}Installing Nginx${N}"
 dnf install nginx -y
-VALIDATE $? "Installing Nginx"
+VALIDATE $? "Installing ... Nginx "
 
-echo -e "${Y}Enabling Nginx Service${N}"
 systemctl enable nginx
-VALIDATE $? "Enabling Nginx"
+VALIDATE $? "Enabling ... Nginx "
 
-echo -e "${Y}Starting Nginx Service${N}"
 systemctl start nginx
-VALIDATE $? "Starting Nginx"
+VALIDATE $? "Staring ... Nginx "
 
-echo -e "${Y}Cleaning existing content in /usr/share/nginx/html${N}"
 rm -rf /usr/share/nginx/html/*
-VALIDATE $? "Removing default Nginx content"
+VALIDATE $? "Removing existing content ... "
 
-echo -e "${Y}Downloading frontend application code (web.zip)${N}"
 curl -o /tmp/web.zip https://roboshop-builds.s3.amazonaws.com/web.zip
-VALIDATE $? "Downloading web.zip"
+VALIDATE $? "Downloading content from S3 Bucket "
 
-echo -e "${Y}Unzipping web.zip${N}"
-unzip -o /tmp/web.zip -d /usr/share/nginx/html/
-VALIDATE $? "Extracting web.zip to /usr/share/nginx/html"
 
-echo -e "${Y}Restarting Nginx service to apply changes${N}"
-systemctl restart nginx
-VALIDATE $? "Restarting Nginx"
+unzip /tmp/web.zip
+VALIDATE $? "Unziping Files in temp dir ... "
 
-echo -e "${G}Frontend setup completed successfully!${N}"
+
+systemctl restart nginx 
+VALIDATE $? "Restarting ... Nginx "
