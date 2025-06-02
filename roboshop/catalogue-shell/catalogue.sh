@@ -93,7 +93,8 @@ VALIDATE $? "Copying ... mongo.repo to Catalogue"
 dnf install -y mongodb-mongosh &>> $LOGFILE
 VALIDATE $? "Installing ... mongodb client " 
 
-mongosh --host $MONGODB_HOST </app/schema/catalogue.js &>> $LOGFILE
-VALIDATE $? "Loading ... Catalogue data into Mongodb" 
+mongosh --host $MONGODB_HOST </app/schema/catalogue.js >> $LOGFILE 2>&1
+VALIDATE $? "Loading ... Catalogue data into Mongodb"
+
 
 
