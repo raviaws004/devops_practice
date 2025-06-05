@@ -1,71 +1,82 @@
 #!/bin/bash
 
 ID=$(id -u)
+TIMESTAMP=$(date "+%F-%T")
+SCRIPT_NAME=$(basename $0)
+LOGFILE="/tmp/${SCRIPT_NAME}-${TIMESTAMP}.log"
 
-TIMESTAMP=$(date "+%F-%T")  # %F = YYYY-MM-DD, %T = HH:MM:SS
-LOGFILE="/tmp/$0-$TIMESTAMP.log"
-
-
+# Color codes
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
-echo "script start executing at $TIMESTAMP" &>> $LOGFILE 
+echo "Script started at $TIMESTAMP" &>> $LOGFILE
 
+# Validation function
 VALIDATE() {
-    if [ $1 -ne 0 ]; then
-        echo -e "❌ ERROR: $2 ... $R FAILED $N"
-        exit 1
-    else
-        echo -e "✅ SUCCESS: $2 ... $G SUCCESS $N"
-    fi
+  if [ $1 -ne 0 ]; then
+    echo -e "❌ ERROR: $2 ... $R FAILED $N"
+    exit 1
+  else
+    echo -e "✅ SUCCESS: $2 ... $G SUCCESS $N"
+  fi
 }
 
+# Check for root access
+if [ $ID -ne 0 ]; then
+  echo -e "❌ ERROR: Please run the script with root access"
+  exit 1
+else
+  echo -e "✅ Running as root user" &>> $LOGFILE
+fi
 
- if [ $ID -ne 0 ]; then
-        echo -e "❌ ERROR: $2 ... $R PLease run the script with root access $N"
-        exit 1
-    else
-        echo -e "✅ SUCCESS: $2 ... $G You are a root user $N"
-    fi
+# Copy MongoDB repo file only if it doesn't exist
+if [ ! -f /etc/yum.repos.d/mongo.repo ]; then
+  cp mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
+  VALIDATE $? "Copying mongo.repo to yum.repos.d"
+else
+  echo -e "✅ mongo.repo already exists ... $Y SKIPPING $N" &>> $LOGFILE
+fi
 
-cp mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
-VALIDATE $? "Copied MOngoDB"
+# Install MongoDB only if not already installed
+dnf list installed mongodb-org &> /dev/null
+if [ $? -ne 0 ]; then
+  dnf install mongodb-org -y &>> $LOGFILE
+  VALIDATE $? "Installing MongoDB"
+else
+  echo -e "✅ MongoDB already installed ... $Y SKIPPING $N" &>> $LOGFILE
+fi
 
-dnf install mongodb-org -y &>> $LOGFILE
-VALIDATE $? "Installing ... MongoDB"
+# Enable mongod if not already enabled
+systemctl is-enabled mongod &> /dev/null
+if [ $? -ne 0 ]; then
+  systemctl enable mongod &>> $LOGFILE
+  VALIDATE $? "Enabling MongoDB"
+else
+  echo -e "✅ MongoDB already enabled ... $Y SKIPPING $N" &>> $LOGFILE
+fi
 
-systemctl enable mongod
-VALIDATE $? "Enabling ... MongoDB"
+# Start mongod if not already active
+systemctl is-active mongod &> /dev/null
+if [ $? -ne 0 ]; then
+  systemctl start mongod &>> $LOGFILE
+  VALIDATE $? "Starting MongoDB"
+else
+  echo -e "✅ MongoDB already running ... $Y SKIPPING $N" &>> $LOGFILE
+fi
 
-systemctl start mongod
-VALIDATE $? "Starting ... MongoDB"
+# Update bind IP in mongod.conf only if required
+grep -q "bindIp: 0.0.0.0" /etc/mongod.conf
+if [ $? -ne 0 ]; then
+  sed -i 's/127\.0\.0\.1/0.0.0.0/' /etc/mongod.conf &>> $LOGFILE
+  VALIDATE $? "Updating bindIp to 0.0.0.0 in mongod.conf"
+else
+  echo -e "✅ bindIp already set to 0.0.0.0 ... $Y SKIPPING $N" &>> $LOGFILE
+fi
 
-# (SED - Sreamline Editor) which changes the bind port address from 127.0.0.1 to 0.0.0.0 in /etc/mongod.conf
-# SED is a temporary editor
-# sed -e : temporary change     syntax:  sed -e <word_to_search>/<word_to_chnages> <filename>
-#                               example: sed -e 's/sbin/SBIN/' - changes made in 1st possible lines  
-#                                        sed -e 's/sbin/SBIN/g' - changes made in all possible lines
-#  --> delete 1st line in the log --     sed -e '1d' <filename>
-#  --> delete 2nd line in the log --     sed -e '2d' <filename>
-#  --> delete string line in the log --     sed -e '/<string>/d' <filename>
+# Restart mongod to apply config changes
+systemctl restart mongod &>> $LOGFILE
+VALIDATE $? "Restarting MongoDB service"
 
-
-# sed -i : permenenet change    syntax: sed -i <word_to_search>/<word_to_chnages> <filename>
-
-# Update bind IP in mongod.conf
-#sed -i '127.0.0.1/0.0.0.0 /g' /etc/mongod.conf &>> $LOGFILE   --> invalid syntax 
-grep bindIp /etc/mongod.conf &>> $LOGFILE
-sed -i 's/127\.0\.0\.1/0.0.0.0/' /etc/mongod.conf &>> $LOGFILE
-VALIDATE $? "Updating bind IP in mongod.conf"
-grep bindIp /etc/mongod.conf &>> $LOGFILE
-
-
-VALIDATE $? "Updating bind IP in mongod.conf"
-
-
-systemctl restart mongod
-VALIDATE $? "Restarting ... MongoDB"
-
-
+echo -e "✅ $G MongoDB setup completed successfully. $N"
