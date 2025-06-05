@@ -1,100 +1,105 @@
 #!/bin/bash
 
+set -e  # Exit immediately if a command exits with non-zero status
+
 ID=$(id -u)
-
-TIMESTAMP=$(date "+%F-%T")  # %F = YYYY-MM-DD, %T = HH:MM:SS
-LOGFILE="/tmp/$0-$TIMESTAMP.log"
-
+TIMESTAMP=$(date "+%F-%T")  # YYYY-MM-DD-HH:MM:SS
+LOGFILE="/tmp/$(basename "$0")-$TIMESTAMP.log"
 
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
-MONGODB_HOST=172.31.32.244
+MONGODB_HOST="172.31.32.244"
 
-echo "script start executing at $TIMESTAMP" &>> $LOGFILE 
+echo -e "${Y}Script started at $TIMESTAMP${N}" | tee -a "$LOGFILE"
 
 VALIDATE() {
     if [ $1 -ne 0 ]; then
-        echo -e "❌ ERROR: $2 ... $R FAILED $N"
+        echo -e "❌ ERROR: $2 ... ${R}FAILED${N}" | tee -a "$LOGFILE"
         exit 1
     else
-        echo -e "✅ SUCCESS: $2 ... $G SUCCESS $N"
+        echo -e "✅ SUCCESS: $2 ... ${G}SUCCESS${N}" | tee -a "$LOGFILE"
     fi
 }
 
-
- if [ $ID -ne 0 ]; then
-        echo -e "❌ ERROR: $2 ... $R PLease run the script with root access $N"
-        exit 1
-    else
-        echo -e "✅ SUCCESS: $2 ... $G You are a root user $N"
-    fi
-
-
-dnf module disable nodejs -y &>> $LOGFILE
-VALIDATE $? "Diabling ... nodejs" 
-
-dnf module enable nodejs:20 -y &>> $LOGFILE
-VALIDATE $? "Enabling ... nodejs:20"
-
-dnf install nodejs -y &>> $LOGFILE
-VALIDATE $? "Installing ... nodejs" 
-
-
-id roboshop
-if [ $? -ne -0 ]
-then 
-
-    useradd roboshop &>> $LOGFILE
-    VALIDATE $? "Adding User ... roboshop " 
-else echo -e "roboshop user already exist ... $Y SKIPPING $N"
+# Root user check
+if [ "$ID" -ne 0 ]; then
+    echo -e "❌ ERROR: Please run the script with root access${N}" | tee -a "$LOGFILE"
+    exit 1
+else
+    echo -e "✅ You are running as root user${N}" | tee -a "$LOGFILE"
 fi
 
-mkdir -p /app &>> $LOGFILE
-VALIDATE $? "Creating ... Application directory " 
+dnf module disable nodejs -y &>> "$LOGFILE"
+VALIDATE $? "Disabling nodejs module"
 
+dnf module enable nodejs:20 -y &>> "$LOGFILE"
+VALIDATE $? "Enabling nodejs:20 module"
 
-curl -o /tmp/catalogue.zip https://roboshop-builds.s3.amazonaws.com/catalogue.zip &>> $LOGFILE
-VALIDATE $? "Downloading ... catalogue.zip file from S3 Bucket" 
+dnf install nodejs -y &>> "$LOGFILE"
+VALIDATE $? "Installing nodejs"
 
-cd /app &>> $LOGFILE
-VALIDATE $? "Changing directory ... app " 
+# Check if user roboshop exists, else add
+if id roboshop &>/dev/null; then
+    echo -e "✅ User roboshop already exists ... ${Y}SKIPPING${N}" | tee -a "$LOGFILE"
+else
+    useradd roboshop &>> "$LOGFILE"
+    VALIDATE $? "Adding user roboshop"
+fi
 
-#unzip /tmp/catalogue.zip &>> $LOGFILE
-unzip -o /tmp/catalogue.zip &>> $LOGFILE
-VALIDATE $? "Unzipping catalogue.zip in /tmp directory " 
+mkdir -p /app &>> "$LOGFILE"
+VALIDATE $? "Creating /app directory"
 
-cd /app &>> $LOGFILE
-VALIDATE $? "Changing directory ... app " 
+chown roboshop:roboshop /app &>> "$LOGFILE"
+VALIDATE $? "Setting ownership for /app to roboshop"
 
-npm install &>> $LOGFILE
-VALIDATE $? "Installing ... npm package ... dependencies " 
+curl -o /tmp/catalogue.zip https://roboshop-builds.s3.amazonaws.com/catalogue.zip &>> "$LOGFILE"
+VALIDATE $? "Downloading catalogue.zip"
 
-#provide absolute path which we pull in instance because catalogue.service exist there
-cp /home/ec2-user/devops_practice/roboshop/catalogue-shell/catalogue.service /etc/systemd/system/catalogue.service &>> $LOGFILE
-VALIDATE $? "Copying ... catalogue.service" 
+cd /app &>> "$LOGFILE"
+VALIDATE $? "Changing directory to /app"
 
-systemctl daemon-reload &>> $LOGFILE
-VALIDATE $? "catalogue daemon reload " 
+unzip -o /tmp/catalogue.zip &>> "$LOGFILE"
+VALIDATE $? "Unzipping catalogue.zip"
 
+npm install &>> "$LOGFILE"
+VALIDATE $? "Installing npm dependencies"
 
-systemctl enable catalogue &>> $LOGFILE
-VALIDATE $? "Enabling ... catalogue "
+# Check if service file exists before copying
+SERVICE_SRC="/home/ec2-user/devops_practice/roboshop/catalogue-shell/catalogue.service"
+if [ -f "$SERVICE_SRC" ]; then
+    cp "$SERVICE_SRC" /etc/systemd/system/catalogue.service &>> "$LOGFILE"
+    VALIDATE $? "Copying catalogue.service"
+else
+    echo -e "❌ ERROR: Service file $SERVICE_SRC not found${N}" | tee -a "$LOGFILE"
+    exit 1
+fi
 
+systemctl daemon-reload &>> "$LOGFILE"
+VALIDATE $? "Reloading systemd daemon"
 
-systemctl start catalogue &>> $LOGFILE
-VALIDATE $? "Starting ... catalogue" 
+systemctl enable catalogue &>> "$LOGFILE"
+VALIDATE $? "Enabling catalogue service"
 
-cp /home/ec2-user/devops_practice/roboshop/mongodb-shell/mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
-VALIDATE $? "Copying ... mongo.repo to Catalogue" 
+systemctl restart catalogue &>> "$LOGFILE"
+VALIDATE $? "Starting/restarting catalogue service"
 
-dnf install -y mongodb-mongosh &>> $LOGFILE
-VALIDATE $? "Installing ... mongodb client " 
+# Check if mongo.repo file exists before copying
+MONGO_REPO_SRC="/home/ec2-user/devops_practice/roboshop/mongodb-shell/mongo.repo"
+if [ -f "$MONGO_REPO_SRC" ]; then
+    cp "$MONGO_REPO_SRC" /etc/yum.repos.d/mongo.repo &>> "$LOGFILE"
+    VALIDATE $? "Copying mongo.repo"
+else
+    echo -e "❌ ERROR: mongo.repo file $MONGO_REPO_SRC not found${N}" | tee -a "$LOGFILE"
+    exit 1
+fi
 
-mongosh --host $MONGODB_HOST </app/schema/catalogue.js >> $LOGFILE 2>&1
-VALIDATE $? "Loading ... Catalogue data into Mongodb"
+dnf install -y mongodb-mongosh &>> "$LOGFILE"
+VALIDATE $? "Installing mongodb client (mongosh)"
 
+mongosh --host "$MONGODB_HOST" </app/schema/catalogue.js &>> "$LOGFILE"
+VALIDATE $? "Loading catalogue data into MongoDB"
 
-
+echo -e "${G}Script completed successfully!${N}" | tee -a "$LOGFILE"
