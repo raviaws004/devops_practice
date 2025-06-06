@@ -94,7 +94,7 @@ After=network.target
 [Service]
 User=roboshop
 WorkingDirectory=/app
-Environment=AMQP_HOST=RABBITMQ-IP
+Environment=AMQP_HOST=172.31.81.24
 Environment=AMQP_USER=roboshop
 Environment=AMQP_PASS=roboshop123
 ExecStart=/app/dispatch
