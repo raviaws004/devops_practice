@@ -1,6 +1,7 @@
 #!/bin/bash
 
-LOGFILE="/tmp/dispatch-setup-$(date +%F-%T).log"
+# Dispatch Setup Script
+LOGFILE="/tmp/dispatch-setup-$(date +%F-%H-%M-%S).log"
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
@@ -23,68 +24,51 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-# Check curl and unzip installed
-for cmd in curl unzip; do
-  if ! command -v $cmd &>/dev/null; then
-    dnf install -y $cmd &>> "$LOGFILE"
-    VALIDATE $? "Installing $cmd"
-  else
-    echo -e "✅ $cmd already installed ... $Y SKIPPING $N" | tee -a "$LOGFILE"
-  fi
-done
-
-# Install golang if not installed
+# Install GoLang if not installed
 if ! command -v go &>/dev/null; then
   dnf install golang -y &>> "$LOGFILE"
-  VALIDATE $? "Installing golang"
+  VALIDATE $? "Installing GoLang"
 else
-  echo -e "✅ Golang already installed ... $Y SKIPPING $N" | tee -a "$LOGFILE"
+  echo -e "✅ GoLang already installed ... $Y SKIPPING $N" | tee -a "$LOGFILE"
 fi
 
-# Add roboshop user if not exists
+# Add application user
 if ! id roboshop &>/dev/null; then
   useradd roboshop &>> "$LOGFILE"
   VALIDATE $? "Adding user roboshop"
 else
-  echo -e "✅ User roboshop exists ... $Y SKIPPING $N" | tee -a "$LOGFILE"
+  echo -e "✅ User roboshop already exists ... $Y SKIPPING $N" | tee -a "$LOGFILE"
 fi
 
-# Create /app directory if not exists, and set ownership to roboshop
+# Create /app directory
 if [ ! -d /app ]; then
   mkdir /app
   VALIDATE $? "Creating /app directory"
 else
   echo -e "✅ /app directory exists ... $Y SKIPPING $N" | tee -a "$LOGFILE"
 fi
-chown roboshop:roboshop /app
+chown -R roboshop:roboshop /app
 
-# Download dispatch.zip (overwrite every time for fresh deploy)
+# Download and extract dispatch app
 curl -L -o /tmp/dispatch.zip https://roboshop-builds.s3.amazonaws.com/dispatch.zip &>> "$LOGFILE"
 VALIDATE $? "Downloading dispatch.zip"
 
-# Clean up old app content
 rm -rf /app/*
-
-# Unzip dispatch.zip into /app
 unzip /tmp/dispatch.zip -d /app &>> "$LOGFILE"
 VALIDATE $? "Unzipping dispatch.zip"
 
-# Switch to roboshop user to build app
+# Build the Go app as roboshop user
 sudo -u roboshop bash << 'EOF'
 cd /app
-
-# Initialize module if go.mod missing
 if [ ! -f go.mod ]; then
-  go mod init dispatch &>> "$LOGFILE"
+  go mod init dispatch
 fi
-
-go mod tidy &>> "$LOGFILE"
-go build &>> "$LOGFILE"
+go mod tidy
+go build
 EOF
+VALIDATE $? "Building Go Application"
 
-VALIDATE $? "Building Go application"
-
-# Create systemd service file for dispatch app
+# Create systemd service file
 SERVICE_FILE="/etc/systemd/system/dispatch.service"
 cat > "$SERVICE_FILE" << EOF
 [Unit]
@@ -104,12 +88,11 @@ SyslogIdentifier=dispatch
 [Install]
 WantedBy=multi-user.target
 EOF
-
 VALIDATE $? "Creating systemd service file"
 
-# Reload systemd and enable/start service
+# Start and enable the service
 systemctl daemon-reload &>> "$LOGFILE"
-VALIDATE $? "Reloading systemd daemon"
+VALIDATE $? "Systemd daemon reload"
 
 systemctl enable dispatch &>> "$LOGFILE"
 VALIDATE $? "Enabling dispatch service"
@@ -117,4 +100,4 @@ VALIDATE $? "Enabling dispatch service"
 systemctl restart dispatch &>> "$LOGFILE"
 VALIDATE $? "Starting dispatch service"
 
-echo -e "${G}Dispatch setup completed successfully!${N}" | tee -a "$LOGFILE"
+echo -e "${G}✅ Dispatch setup completed successfully!${N}" | tee -a "$LOGFILE"
