@@ -10,7 +10,7 @@ G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
-MONGODB_HOST=172.31.46.203
+MONGODB_HOST=172.31.25.233
 
 echo "Script start executing at $TIMESTAMP" &>> "$LOGFILE"
 
