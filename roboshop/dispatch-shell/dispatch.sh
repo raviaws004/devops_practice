@@ -70,7 +70,7 @@ unzip /tmp/dispatch.zip -d /app &>> "$LOGFILE"
 VALIDATE $? "Unzipping dispatch.zip"
 
 # Switch to roboshop user to build app
-sudo -u roboshop bash << EOF
+sudo -u roboshop bash << 'EOF'
 cd /app
 
 # Initialize module if go.mod missing
