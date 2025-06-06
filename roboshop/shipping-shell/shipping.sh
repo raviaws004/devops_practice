@@ -11,7 +11,7 @@ ZIP_FILE="/tmp/shipping.zip"
 ZIP_URL="https://roboshop-builds.s3.amazonaws.com/shipping.zip"
 SERVICE_FILE="/etc/systemd/system/shipping.service"
 LOCAL_SERVICE_FILE="/home/ec2-user/devops_practice/roboshop/shipping-shell/shipping.service"
-MYSQL_HOST="<MYSQL-SERVER-IPADDRESS>"   # 🔴 Replace this with actual IP
+MYSQL_HOST=172.31.16.45   # 🔴 Replace this with actual IP
 MYSQL_PASS="RoboShop@1"
 
 # Colors
