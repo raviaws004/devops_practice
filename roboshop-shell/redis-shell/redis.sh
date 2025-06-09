@@ -4,7 +4,7 @@ ID=$(id -u)
 
 TIMESTAMP=$(date "+%F-%T")  # %F = YYYY-MM-DD, %T = HH:MM:SS
 LOGFILE="/tmp/$0-$TIMESTAMP.log"
-
+exec &>$LOGFILE
 
 R="\e[31m"
 G="\e[32m"
