@@ -91,7 +91,6 @@
         state: present
 
     - name: Load catalogue schema into MongoDB
-      ansible.builtin.command:
-        cmd: mongosh --host {{ mongodb_host }} </app/schema/catalogue.js
-      register: schema_load
-      changed_when: false
+  ansible.builtin.shell: |
+    mongosh --host 172.31.28.201 < /app/schema/catalogue.js
+
