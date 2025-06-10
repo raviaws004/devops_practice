@@ -49,5 +49,4 @@
         dest: /etc/yum.repos.d/mongo.repo
     - name: Load MongoDB Schema
       ansible.builtin.shell: mongosh --host 172.31.89.109 </app/schema/catalogue.js
-      args:
-        warn: false
+      
