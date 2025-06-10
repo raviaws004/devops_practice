@@ -6,65 +6,48 @@
       ansible.builtin.shell: |
         dnf module disable nodejs -y
         dnf module enable nodejs:20 -y
-      args:
-        warn: false
-
     - name: Install nodejs
       ansible.builtin.dnf:
         name: nodejs
         state: present 
-
     - name: Add roboshop user
       ansible.builtin.user:
         name: roboshop
         create_home: yes
-
-    - name: Create app directory
+    - name: create app directory
       ansible.builtin.file:
         path: /app
         state: directory
-
     - name: Download catalogue application
       ansible.builtin.get_url:
         url: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
-        dest: /tmp/catalogue.zip
-
-    - name: Unzip application files into /app
+        dest: /tmp
+    - name: Unzip application files in tmp directory
       ansible.builtin.unarchive:
-        src: /tmp/catalogue.zip
+        src:  /tmp/catalogue.zip
         dest: /app
         remote_src: yes
-
     - name: Install Node.js dependencies
       ansible.builtin.shell: npm install
       args:
         chdir: /app
-        warn: false
-
     - name: Copy catalogue service file
       ansible.builtin.copy:
         src: catalogue.service
         dest: /etc/systemd/system/catalogue.service
-
-    - name: Reload systemd daemon
-      ansible.builtin.systemd:
-        daemon_reload: yes
-
+    - name: Daemon Reload and Starting
+      ansible.builtin.service:
+        daemon_reload: true
     - name: Start and enable catalogue service
       ansible.builtin.service:
         name: catalogue
         state: started
         enabled: yes
-
-    - name: Copy MongoDB repo
+    - name: Copy mongodb repo
       ansible.builtin.copy:
         src: mongodb.repo
         dest: /etc/yum.repos.d/mongo.repo
-
-    - name: Install MongoDB Shell Client
-      ansible.builtin.package:
-        name: mongodb-org-shell
-        state: present
-
     - name: Load MongoDB Schema
-      ansible.builtin.shell: mongosh --host 172.31.89
+      ansible.builtin.shell: mongosh --host 172.31.89.109 </app/schema/catalogue.js
+      args:
+        warn: false
