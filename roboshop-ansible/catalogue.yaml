@@ -1,6 +1,6 @@
 - name: Configure Catalogue service
   hosts: 172.31.88.7
-  becomes: yes
+  become: yes
   tasks:
     - name: Disable Default Nodejs & Enable Nodejs 20
       ansible.builtin.shell: |
