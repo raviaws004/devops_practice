@@ -54,9 +54,9 @@
         state: started
         enabled: yes
 
-    - name: Setup MongoDB repo
+    - name: Copy MongoDB Repo
       ansible.builtin.copy:
-        scr: mongodb.repo 
+        src: mongodb.repo
         dest: /etc/yum.repos.d/mongodb.repo
 
     - name: Install MongoDB shell
