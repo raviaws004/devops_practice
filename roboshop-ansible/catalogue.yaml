@@ -1,16 +1,17 @@
-- name: Configure Catalogue service
+- name: Configure Catalogue Service
   hosts: 172.31.88.7
   become: yes
   tasks:
-    - name: Disable Default Nodejs & Enable Nodejs 20
-      ansible.builtin.shell: |
-        dnf module disable nodejs -y
-        dnf module enable nodejs:20 -y
+    - name: Disable default NodeJS module
+      ansible.builtin.shell: dnf module disable nodejs -y
 
-    - name: Install nodejs
+    - name: Enable NodeJS 20 module
+      ansible.builtin.shell: dnf module enable nodejs:20 -y
+
+    - name: Install NodeJS
       ansible.builtin.dnf:
         name: nodejs
-        state: present 
+        state: present
 
     - name: Add roboshop user
       ansible.builtin.user:
@@ -27,7 +28,7 @@
         url: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
         dest: /tmp/catalogue.zip
 
-    - name: Unzip application files in tmp directory
+    - name: Unzip application
       ansible.builtin.unarchive:
         src: /tmp/catalogue.zip
         dest: /app
@@ -43,25 +44,31 @@
         src: catalogue.service
         dest: /etc/systemd/system/catalogue.service
 
-    - name: Daemon Reload
-      ansible.builtin.service:
-        daemon_reload: true
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes
 
-    - name: Start and enable catalogue service
+    - name: Enable and start catalogue service
       ansible.builtin.service:
         name: catalogue
         state: started
         enabled: yes
 
-    - name: Copy MongoDB repo
+    - name: Setup MongoDB repo
       ansible.builtin.copy:
-        src: mongodb.repo
-        dest: /etc/yum.repos.d/mongo.repo
+        content: |
+          [mongodb-org-7.0]
+          name=MongoDB Repository
+          baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/7.0/x86_64/
+          gpgcheck=1
+          enabled=1
+          gpgkey=https://pgp.mongodb.com/server-7.0.asc
+        dest: /etc/yum.repos.d/mongodb.repo
 
-    - name: Install MongoDB shell client
+    - name: Install MongoDB shell
       ansible.builtin.dnf:
-        name: mongodb-org-shell
+        name: mongodb-mongosh
         state: present
 
-    - name: Load MongoDB Schema
+    - name: Load MongoDB schema
       ansible.builtin.shell: mongosh --host 172.31.89.109 </app/schema/catalogue.js
