@@ -2,3 +2,19 @@
   ansible.builtin.include_role:
     name: common
     tasks_from: app-setup
+
+- name: Include common tasks
+  ansible.builtin.include_role:
+    name: common
+    tasks_from: nodejs   
+
+- name: Include common tasks
+  ansible.builtin.include_role:
+    name: common
+    tasks_from: mongodb-setup
+
+- name: start and enable {{component}}
+  ansible.builtin.service:
+    name: {{component}}
+    state: restarted
+    enabled: yes
