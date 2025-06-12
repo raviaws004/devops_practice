@@ -9,12 +9,12 @@
       state: present
 
   - name: get the categories count
-    ansible.builtin.shell:  mongo --{{ hostvars[groups['mongodb'][0]]['ansible_host'] }} --quiet --eval 'db = db.getSiblingDB("catalogue"); db.products.count()'
+    ansible.builtin.shell:  mongo --host mongodb.ravisripada.fun --quiet --eval 'db = db.getSiblingDB("catalogue"); db.products.count()'
     register: entries_count
     when: component == "catalogue"
 
   - name: get the categories count
-    ansible.builtin.shell:  mongo --{{ hostvars[groups['mongodb'][0]]['ansible_host'] }} --quiet --eval 'db = db.getSiblingDB("user"); db.products.count()'
+    ansible.builtin.shell:  mongo --host mongodb.ravisripada.fun --quiet --eval 'db = db.getSiblingDB("user"); db.products.count()'
     register: entries_count
     when: component == "user"
 
@@ -23,5 +23,5 @@
   #     msg: "product count: {{product_count}}"
 
   - name: load {{component}} data
-    ansible.builtin.shell: mongo --host {{ hostvars[groups['mongodb'][0]]['ansible_host'] }} < /app/schema/{{component}}.js
+    ansible.builtin.shell: mongo --host mongodb.ravisripada.fun < /app/schema/{{component}}.js
     when: product_count.stdout == "0" # keep double quotes
