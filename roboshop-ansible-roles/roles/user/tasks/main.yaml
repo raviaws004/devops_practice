@@ -3,7 +3,7 @@
     name: common
     tasks_from: app-setup
 
-- name: node js
+- name: nodejs
   ansible.builtin.import_role:
     name: common
     tasks_from: nodejs
@@ -13,12 +13,7 @@
     name: common
     tasks_from: mongodb-setup
 
-- name: system start
+- name: systemctl service
   ansible.builtin.import_role:
     name: common
     tasks_from: systemd
-
-- name: deployment
-  ansible.builtin.import_role:
-    name: common
-    tasks_from: deployment
