@@ -3,22 +3,17 @@
     name: common
     tasks_from: app-setup
 
-- name: node js
+- name: java
   ansible.builtin.import_role:
     name: common
-    tasks_from: nodejs
+    tasks_from: java
 
-- name: mongodb setup
+- name: mysql setup
   ansible.builtin.import_role:
     name: common
-    tasks_from: mongodb-setup
+    tasks_from: mysql-setup
 
 - name: system start
   ansible.builtin.import_role:
     name: common
     tasks_from: systemd
-
-- name: deployment
-  ansible.builtin.import_role:
-    name: common
-    tasks_from: deployment
