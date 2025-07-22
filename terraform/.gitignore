@@ -1,0 +1,20 @@
+.terraform/
+<<<<<<< HEAD
+workspaces/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform.lock.hcl
+
+# Ignore the remote state file
+remote_state.tfstate
+# Ignore the Terraform plan files
+*.tfplan
+# Ignore the Terraform workspace files
+*.tfworkspace
+# Ignore the Terraform variable files
+*.tfvars.json
+# Ignore the Terraform provider lock file
+provider.lock.hcl       
+=======
+>>>>>>> 58203c787f75dadc9884f1ddaafebb532ecbdcd2
